@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import DataTable, { StatusBadge } from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +12,6 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { API } from '@/lib/api';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
 import { Calendar, Download, FileText, BarChart3, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -171,33 +170,31 @@ export default function AdminReportsPage() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <Header />
-          <div className="p-6 space-y-6" dir={dir}>
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold">{t('reportManagement')}</h1>
-                <p className="text-gray-500 mt-1">{t('detailedReport')}</p>
-              </div>
-              <Button onClick={exportToCSV} disabled={reportData.length === 0}>
-                <Download className="ml-2 h-4 w-4" />
-                {t('export')}
-              </Button>
+      <DashboardLayout>
+        <div className="w-full overflow-hidden">
+          <div className="p-4 md:p-6 space-y-4 md:space-y-6 w-full" dir={dir}>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{t('reportManagement')}</h1>
+              <p className="text-gray-500 mt-1 text-sm md:text-base">{t('detailedReport')}</p>
             </div>
+            <Button onClick={exportToCSV} disabled={reportData.length === 0} className="w-full sm:w-auto">
+              <Download className="ml-2 h-4 w-4" />
+              {t('export')}
+            </Button>
+          </div>
 
-            {/* Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  {t('selectDateRange')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-4">
+          {/* Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calendar className="h-5 w-5" />
+                {t('selectDateRange')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <Label>{t('from')}</Label>
                     <Input
@@ -249,7 +246,7 @@ export default function AdminReportsPage() {
             </Card>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
@@ -320,7 +317,7 @@ export default function AdminReportsPage() {
             </Card>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

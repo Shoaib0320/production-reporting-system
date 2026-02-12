@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import DataTable, { StatusBadge } from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,14 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductionForm from '@/components/forms/ProductionForm';
 import { useProductions } from '@/lib/hooks/useProductions';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { API } from '@/lib/api';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminProductionsPage() {
   const { user } = useAuth();
+  const { t, dir } = useLanguage();
   const { productions, loading, fetchProductions, deleteProduction } = useProductions();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduction, setEditingProduction] = useState(null);
@@ -119,17 +120,14 @@ export default function AdminProductionsPage() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <Header />
-          <div className="p-6 space-y-6" dir="rtl">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold">پروڈکشن مینجمنٹ</h1>
-                <p className="text-gray-500 mt-1">تمام پروڈکشن ریکارڈز</p>
-              </div>
+      <DashboardLayout>
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6" dir={dir}>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{t('productionManagement')}</h1>
+              <p className="text-gray-500 mt-1 text-sm md:text-base">{t('allProductions')}</p>
+            </div>
               <Dialog open={isFormOpen} onOpenChange={(open) => {
                 setIsFormOpen(open);
                 if (!open) setEditingProduction(null);
@@ -209,7 +207,9 @@ export default function AdminProductionsPage() {
               <CardContent>
                 {loading ? (
                   <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                    </div>
                   </div>
                 ) : (
                   <DataTable
@@ -225,8 +225,7 @@ export default function AdminProductionsPage() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

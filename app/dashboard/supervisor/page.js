@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import DataTable, { StatusBadge } from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductionForm from '@/components/forms/ProductionForm';
 import { useProductions } from '@/lib/hooks/useProductions';
 import { useAuth } from '@/lib/hooks/useAuth';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { Plus } from 'lucide-react';
 
 export default function SupervisorDashboard() {
   const { user } = useAuth();
+  const { t, dir } = useLanguage();
   const { productions, loading, fetchProductions, createProduction } = useProductions();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -42,16 +43,13 @@ export default function SupervisorDashboard() {
 
   return (
     <ProtectedRoute allowedRoles={["supervisor"]}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <Header />
-          <div className="p-6 space-y-6" dir="rtl">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold">سپروائزر ڈیش بورڈ</h1>
-                <p className="text-gray-500 mt-1">خوش آمدید، {user?.name}</p>
-              </div>
+      <DashboardLayout>
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6" dir={dir}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{t('supervisorDashboard')}</h1>
+              <p className="text-gray-500 mt-1 text-sm md:text-base">{t('welcome')}، {user?.name}</p>
+            </div>
               <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
                   <Button>
@@ -73,8 +71,8 @@ export default function SupervisorDashboard() {
               </Dialog>
             </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-4 gap-4">
+          {/* Summary Cards */}
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">کل پروڈکشن</CardTitle>
@@ -182,8 +180,7 @@ export default function SupervisorDashboard() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

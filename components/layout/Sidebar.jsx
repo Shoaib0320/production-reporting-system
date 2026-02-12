@@ -15,7 +15,7 @@ import {
   BarChart3 
 } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { t, dir } = useLanguage();
@@ -36,11 +36,15 @@ export default function Sidebar() {
     !item.roles || item.roles.includes(user?.role)
   );
 
+  const handleLinkClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <aside className="w-64 bg-white border-l border-gray-200 min-h-screen p-4 flex flex-col justify-between" dir={dir}>
+    <aside className="w-full h-full bg-white flex flex-col justify-between p-4" dir={dir}>
       <div>
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-800">{t('systemTitle')}</h2>
+          <h2 className="text-lg md:text-xl font-bold text-gray-800">{t('systemTitle')}</h2>
           <p className="text-sm text-gray-600 mt-1">{user?.name}</p>
           <div className="mt-1 text-xs text-gray-500">{t(user?.role)}</div>
         </div>
@@ -54,13 +58,14 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={handleLinkClick}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
+                <span className="text-sm md:text-base">{item.label}</span>
               </Link>
             );
           })}

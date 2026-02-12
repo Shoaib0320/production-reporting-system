@@ -2,19 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import DataTable, { StatusBadge } from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { API } from '@/lib/api';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
 import { Plus, Trash2, Edit, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminMachinesPage() {
   const { user } = useAuth();
+  const { t, dir } = useLanguage();
   const [machines, setMachines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -123,17 +124,14 @@ export default function AdminMachinesPage() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <Header />
-          <div className="p-6 space-y-6" dir="rtl">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold">مشینز مینجمنٹ</h1>
-                <p className="text-gray-500 mt-1">تمام مشینز کی تفصیلات</p>
-              </div>
+      <DashboardLayout>
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6" dir={dir}>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{t('machineManagement')}</h1>
+              <p className="text-gray-500 mt-1 text-sm md:text-base">{t('machines')}</p>
+            </div>
               <Dialog open={isFormOpen} onOpenChange={(open) => {
                 setIsFormOpen(open);
                 if (!open) setEditingMachine(null);
@@ -213,8 +211,7 @@ export default function AdminMachinesPage() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

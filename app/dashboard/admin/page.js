@@ -3,20 +3,21 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import DataTable, { StatusBadge } from '@/components/shared/DataTable';
 import StatsCard from '@/components/shared/StatsCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProductions } from '@/lib/hooks/useProductions';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { API } from '@/lib/api';
 import { Activity, BarChart, Users, FileText, ArrowRight, Cog } from 'lucide-react';
 import { toast } from 'sonner';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { t, dir } = useLanguage();
   const { productions, loading, fetchProductions } = useProductions({ limit: 10 });
   const [summary, setSummary] = useState(null);
 
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
       const data = await API.reports.getSummary();
       setSummary(data);
     } catch (error) {
-      toast.error('سمری لوڈ کرنے میں مسئلہ');
+      toast.error(t('error'));
     }
   };
 
@@ -42,56 +43,53 @@ export default function AdminDashboard() {
   };
 
   const shiftNames = {
-    morning: 'صبح',
-    evening: 'شام',
-    night: 'رات',
+    morning: t('morning'),
+    evening: t('evening'),
+    night: t('night'),
   };
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <Header />
-          <div className="p-6 space-y-6" dir="rtl">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold">ایڈمن ڈیش بورڈ</h1>
-                <p className="text-gray-500 mt-1">خوش آمدید، {user?.name}</p>
-              </div>
+      <DashboardLayout>
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6" dir={dir}>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{t('adminDashboard')}</h1>
+              <p className="text-gray-500 mt-1 text-sm md:text-base">{t('welcome')}، {user?.name}</p>
             </div>
+          </div>
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
-              <StatsCard
-                title="کل پروڈکشن"
-                value={summary?.totalProductions || 0}
-                subtitle="آج تک"
-                icon={Activity}
-              />
-              <StatsCard
-                title="کل وزن (کلو)"
-                value={(summary?.totalWeight || 0).toFixed(2)}
-                subtitle="کل پیداوار"
-                icon={BarChart}
-              />
-              <StatsCard
-                title="آپریٹرز"
-                value={summary?.totalOperators || 0}
-                subtitle="فعال آپریٹرز"
-                icon={Users}
-              />
-              <StatsCard
-                title="مشینز"
-                value={summary?.totalMachines || 0}
-                subtitle="فعال مشینز"
-                icon={FileText}
-              />
-            </div>
+          {/* Stats Cards */}
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <StatsCard
+              title={t('totalProductions')}
+              value={summary?.totalProductions || 0}
+              subtitle={t('total')}
+              icon={Activity}
+            />
+            <StatsCard
+              title={t('totalWeight')}
+              value={(summary?.totalWeight || 0).toFixed(2)}
+              subtitle={t('weightKg')}
+              icon={BarChart}
+            />
+            <StatsCard
+              title={t('operator') + 'ز'}
+              value={summary?.totalOperators || 0}
+              subtitle={t('active')}
+              icon={Users}
+            />
+            <StatsCard
+              title={t('machines')}
+              value={summary?.totalMachines || 0}
+              subtitle={t('active')}
+              icon={FileText}
+            />
+          </div>
 
-            {/* Quick Access Cards */}
-            <div className="grid grid-cols-3 gap-4">
+          {/* Quick Access Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               <Link href="/dashboard/admin/productions">
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardContent className="pt-6">
@@ -211,8 +209,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
-    </ProtectedRoute>
+        </DashboardLayout>
+      </ProtectedRoute>
   );
 }

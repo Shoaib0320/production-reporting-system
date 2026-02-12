@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import DetailModal from '@/components/shared/DetailModal';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { API } from '@/lib/api';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
 
 export default function UsersPage() {
   const { user } = useAuth();
+  const { t, dir } = useLanguage();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -36,12 +37,9 @@ export default function UsersPage() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <Header />
-          <div className="p-6" dir="rtl">
-            <Card>
+      <DashboardLayout>
+        <div className="p-4 md:p-6" dir={dir}>
+          <Card>
               <CardHeader>
                 <CardTitle>یوزرز</CardTitle>
               </CardHeader>
@@ -98,8 +96,7 @@ export default function UsersPage() {
               )}
             </DetailModal>
           </div>
-        </div>
-      </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -106,11 +107,11 @@ export default function DataTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       {/* Search and Actions Bar */}
-      <div className="flex items-center justify-between gap-4" dir="rtl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4" dir="rtl">
         {searchable && (
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative w-full sm:flex-1 sm:max-w-sm">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="تلاش کریں..."
@@ -119,91 +120,102 @@ export default function DataTable({
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pr-10"
+              className="pr-10 text-sm"
             />
           </div>
         )}
         {exportable && (
-          <Button variant="outline" size="sm" onClick={handleExport}>
+          <Button variant="outline" size="sm" onClick={handleExport} className="w-full sm:w-auto">
             <Download className="ml-2 h-4 w-4" />
-            ایکسپورٹ
+            <span className="hidden sm:inline">ایکسپورٹ</span>
+            <span className="sm:hidden">Export</span>
           </Button>
         )}
       </div>
 
-      {/* Table */}
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50">
-              {columns.map((col) => (
-                <TableHead key={col.key} className="font-semibold">
-                  <div className="flex items-center gap-2">
-                    <span>{col.header}</span>
-                    {col.sortable !== false && (
-                      <button
-                        onClick={() => handleSort(col.key)}
-                        className="hover:bg-gray-200 p-1 rounded"
-                      >
-                        <ArrowUpDown className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                  {filterable && col.filterable !== false && (
-                    <Input
-                      placeholder={`${col.header} فلٹر...`}
-                      value={columnFilters[col.key] || ''}
-                      onChange={(e) => handleColumnFilter(col.key, e.target.value)}
-                      className="mt-2 h-8 text-xs"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                </TableHead>
-              ))}
-              {rowActions && <TableHead className="w-12"></TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.length > 0 ? (
-              paginatedData.map((row, idx) => (
-                <TableRow 
-                  key={row._id || row.id || idx}
-                  className={onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}
-                  onClick={() => onRowClick?.(row)}
-                >
-                  {columns.map((col) => {
-                    const value = col.accessor ? col.accessor(row) : row[col.key];
-                    return (
-                      <TableCell key={col.key}>
-                        {col.cell ? col.cell(value, row) : value}
-                      </TableCell>
-                    );
-                  })}
+      {/* FIXED: Table with proper width constraints */}
+      <div className="w-full border rounded-lg overflow-x-auto">
+        <div className="min-w-full inline-block align-middle">
+          <div className="overflow-hidden">
+            <Table className="w-full table-fixed">
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  {columns.map((col) => (
+                    <TableHead 
+                      key={col.key} 
+                      className="font-semibold"
+                      style={{ width: col.width || 'auto' }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">{col.header}</span>
+                        {col.sortable !== false && (
+                          <button
+                            onClick={() => handleSort(col.key)}
+                            className="hover:bg-gray-200 p-1 rounded flex-shrink-0"
+                          >
+                            <ArrowUpDown className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                      {filterable && col.filterable !== false && (
+                        <Input
+                          placeholder={`${col.header} فلٹر...`}
+                          value={columnFilters[col.key] || ''}
+                          onChange={(e) => handleColumnFilter(col.key, e.target.value)}
+                          className="mt-2 h-8 text-xs w-full"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      )}
+                    </TableHead>
+                  ))}
                   {rowActions && (
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      {rowActions(row)}
-                    </TableCell>
+                    <TableHead className="w-20"></TableHead>
                   )}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length + (rowActions ? 1 : 0)} className="text-center py-8 text-gray-500">
-                  {emptyMessage}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((row, idx) => (
+                    <TableRow 
+                      key={row._id || row.id || idx}
+                      className={onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}
+                      onClick={() => onRowClick?.(row)}
+                    >
+                      {columns.map((col) => {
+                        const value = col.accessor ? col.accessor(row) : row[col.key];
+                        return (
+                          <TableCell key={col.key} className="truncate">
+                            {col.cell ? col.cell(value, row) : value}
+                          </TableCell>
+                        );
+                      })}
+                      {rowActions && (
+                        <TableCell onClick={(e) => e.stopPropagation()} className="w-20">
+                          {rowActions(row)}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length + (rowActions ? 1 : 0)} className="text-center py-8 text-gray-500">
+                      {emptyMessage}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between" dir="rtl">
-          <div className="text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3" dir="rtl">
+          <div className="text-xs sm:text-sm text-gray-600">
             صفحہ {currentPage} از {totalPages} - کل {sortedData.length} ریکارڈ
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-center">
             <Button
               variant="outline"
               size="sm"
@@ -212,20 +224,23 @@ export default function DataTable({
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = Math.max(1, Math.min(currentPage - 2, totalPages - 4)) + i;
-              if (pageNum > totalPages) return null;
-              return (
-                <Button
-                  key={pageNum}
-                  variant={currentPage === pageNum ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentPage(pageNum)}
-                >
-                  {pageNum}
-                </Button>
-              );
-            })}
+            <div className="flex gap-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(currentPage - 2, totalPages - 4)) + i;
+                if (pageNum > totalPages) return null;
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className="hidden sm:flex"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -261,3 +276,5 @@ export function StatusBadge({ status, labels }) {
     </Badge>
   );
 }
+
+
