@@ -18,11 +18,12 @@ async function getHandler(req, { params }) {
   }
 }
 
-async function putHandler(req, { params }) {
+async function putHandler(req, context) {
   try {
+    const params = await context.params; // Await the params promise
     const body = await req.json();
     const machine = await MachineService.update(params.id, body);
-    
+
     return NextResponse.json({
       success: true,
       data: machine,

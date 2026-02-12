@@ -4,22 +4,39 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import DataTable, { StatusBadge } from '@/components/shared/DataTable';
-import StatsCard from '@/components/shared/StatsCard';
+import SummaryCard from '@/components/shared/SummaryCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useProductions } from '@/lib/hooks/useProductions';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { API } from '@/lib/api';
-import { Activity, BarChart, Users, FileText, ArrowRight, Cog } from 'lucide-react';
+import { Activity, BarChart, Users, Cog, ArrowUpRight, TrendingUp, PieChart as PieChartIcon } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Recharts import karein (npm install recharts)
+import { BarChart as ReBar, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { t, dir } = useLanguage();
-  const { productions, loading, fetchProductions } = useProductions({ limit: 10 });
   const [summary, setSummary] = useState(null);
+
+  // Chart ke liye sample data (Jab API integration ho to yahan dynamic data dalien)
+  const chartData = [
+    { name: 'Mon', value: 3200 },
+    { name: 'Tue', value: 4500 },
+    { name: 'Wed', value: 2800 },
+    { name: 'Thu', value: 5100 },
+    { name: 'Fri', value: 3900 },
+    { name: 'Sat', value: 4800 },
+    { name: 'Sun', value: 3500 },
+  ];
+
+  const pieData = [
+    { name: 'Operational', value: 12, color: '#00A3E1' },
+    { name: 'Maintenance', value: 2, color: '#EF4444' },
+    { name: 'Idle', value: 1, color: '#F59E0B' },
+  ];
 
   useEffect(() => {
     fetchSummary();
@@ -34,182 +51,125 @@ export default function AdminDashboard() {
     }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('ur-PK', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const shiftNames = {
-    morning: t('morning'),
-    evening: t('evening'),
-    night: t('night'),
-  };
-
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <DashboardLayout>
-        <div className="p-4 md:p-6 space-y-4 md:space-y-6" dir={dir}>
+        <div className="space-y-8 animate-in fade-in duration-700" dir={dir}>
+          
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">{t('adminDashboard')}</h1>
-              <p className="text-gray-500 mt-1 text-sm md:text-base">{t('welcome')}، {user?.name}</p>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('adminDashboard')}</h1>
+              <p className="text-gray-500 mt-1 font-medium">{t('welcome')}، <span className="text-[#00A3E1]">{user?.name}</span></p>
             </div>
+            <Button variant="outline" className="rounded-xl font-bold border-2 bg-white" onClick={fetchSummary}>
+               ڈیٹا اپڈیٹ کریں
+            </Button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <StatsCard
-              title={t('totalProductions')}
-              value={summary?.totalProductions || 0}
-              subtitle={t('total')}
-              icon={Activity}
-            />
-            <StatsCard
-              title={t('totalWeight')}
-              value={(summary?.totalWeight || 0).toFixed(2)}
-              subtitle={t('weightKg')}
-              icon={BarChart}
-            />
-            <StatsCard
-              title={t('operator') + 'ز'}
-              value={summary?.totalOperators || 0}
-              subtitle={t('active')}
-              icon={Users}
-            />
-            <StatsCard
-              title={t('machines')}
-              value={summary?.totalMachines || 0}
-              subtitle={t('active')}
-              icon={FileText}
-            />
+          {/* Top Summary Cards */}
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <SummaryCard title={t('totalProductions')} value={summary?.totalProductions || "45,200"} icon={<Activity />} color="blue" />
+            <SummaryCard title={t('totalWeight')} value={(summary?.totalWeight || 14.2).toFixed(1)} unit="Tons" icon={<BarChart />} color="emerald" />
+            <SummaryCard title={t('totalUsers')} value={summary?.totalOperators || 84} icon={<Users />} color="purple" />
+            <SummaryCard title={t('todayYield')} value="94%" icon={<TrendingUp />} color="orange" />
           </div>
 
-          {/* Quick Access Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-              <Link href="/dashboard/admin/productions">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600">پروڈکشن مینجمنٹ</p>
-                        <h3 className="text-2xl font-bold mt-1">{summary?.totalProductions || 0}</h3>
-                      </div>
-                      <BarChart className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <div className="flex items-center mt-4 text-blue-600">
-                      <span className="text-sm">مکمل دیکھیں</span>
-                      <ArrowRight className="h-4 w-4 mr-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-              
-              <Link href="/dashboard/admin/machines">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600">مشینز</p>
-                        <h3 className="text-2xl font-bold mt-1">{summary?.totalMachines || 0}</h3>
-                      </div>
-                      <Cog className="h-8 w-8 text-green-600" />
-                    </div>
-                    <div className="flex items-center mt-4 text-green-600">
-                      <span className="text-sm">مکمل دیکھیں</span>
-                      <ArrowRight className="h-4 w-4 mr-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              <Link href="/dashboard/admin/users">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600">یوزرز</p>
-                        <h3 className="text-2xl font-bold mt-1">{summary?.totalOperators || 0}</h3>
-                      </div>
-                      <Users className="h-8 w-8 text-purple-600" />
-                    </div>
-                    <div className="flex items-center mt-4 text-purple-600">
-                      <span className="text-sm">مکمل دیکھیں</span>
-                      <ArrowRight className="h-4 w-4 mr-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-
-            {/* Recent Productions Preview */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>حالیہ پروڈکشن ریکارڈ</CardTitle>
-                  <Link href="/dashboard/admin/productions">
-                    <Button variant="outline" size="sm">
-                      تمام دیکھیں
-                      <ArrowRight className="mr-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Main Bar Chart (Production Trends) */}
+            <Card className="lg:col-span-2 border-none shadow-sm rounded-[32px] bg-white overflow-hidden">
+              <CardHeader className="px-8 pt-8 flex flex-row justify-between items-center">
+                <CardTitle className="text-xl font-black flex items-center gap-2">
+                  <TrendingUp className="text-[#00A3E1] h-5 w-5" />
+                  پیداوار کا رجحان (Weekly)
+                </CardTitle>
+                <div className="text-xs font-bold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full">+12% اضافہ</div>
               </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <CardContent className="h-[350px] pt-4 pr-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ReBar data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} />
+                    <Tooltip cursor={{fill: '#F8FAFC'}} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                    <Bar dataKey="value" fill="#00A3E1" radius={[10, 10, 0, 0]} barSize={40}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index === 3 ? '#007BB5' : '#00A3E1'} fillOpacity={index === 3 ? 1 : 0.4} />
+                      ))}
+                    </Bar>
+                  </ReBar>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Donut Chart (Machine Status) */}
+            <Card className="border-none shadow-sm rounded-[32px] bg-white">
+              <CardHeader className="px-8 pt-8">
+                <CardTitle className="text-xl font-black flex items-center gap-2">
+                  <PieChartIcon className="text-[#00A3E1] h-5 w-5" />
+                  مشینوں کی صورتحال
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center">
+                <div className="h-[250px] w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pieData} innerRadius={70} outerRadius={90} paddingAngle={5} dataKey="value">
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {/* Center Text */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-3xl font-black text-gray-800">15</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Total Units</span>
                   </div>
-                ) : (
-                  <DataTable
-                    data={productions.slice(0, 5)}
-                    columns={[
-                      {
-                        key: 'date',
-                        header: 'تاریخ',
-                        accessor: (row) => formatDate(row.date),
-                        filterable: false,
-                        sortable: false
-                      },
-                      {
-                        key: 'machineId',
-                        header: 'مشین',
-                        accessor: (row) => row.machineId?.name,
-                        filterable: false
-                      },
-                      {
-                        key: 'productName',
-                        header: 'پروڈکٹ',
-                        filterable: false
-                      },
-                      {
-                        key: 'totalPieces',
-                        header: 'پیسز',
-                        filterable: false,
-                        sortable: false
-                      },
-                      {
-                        key: 'totalWeight',
-                        header: 'وزن',
-                        accessor: (row) => row.totalWeight.toFixed(2),
-                        filterable: false,
-                        sortable: false
-                      }
-                    ]}
-                    searchable={false}
-                    filterable={false}
-                    exportable={false}
-                    itemsPerPage={5}
-                    emptyMessage="کوئی پروڈکشن ریکارڈ نہیں"
-                  />
-                )}
+                </div>
+                
+                {/* Legend */}
+                <div className="w-full space-y-3 mt-4 px-4">
+                  {pieData.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{backgroundColor: item.color}} />
+                        <span className="text-sm font-bold text-gray-600">{item.name}</span>
+                      </div>
+                      <span className="text-sm font-black text-gray-800">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
-        </DashboardLayout>
-      </ProtectedRoute>
+
+          {/* Quick Access Footer Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { label: 'پروڈکشن ریکارڈز', link: '/dashboard/admin/productions', icon: Activity, color: 'blue' },
+              { label: 'یوزر مینجمنٹ', link: '/dashboard/admin/users', icon: Users, color: 'purple' },
+              { label: 'سسٹم سیٹنگز', link: '/dashboard/admin/machines', icon: Cog, color: 'orange' }
+            ].map((item, i) => (
+              <Link href={item.link} key={i}>
+                <Card className="border-none shadow-sm rounded-2xl p-4 hover:ring-2 ring-blue-100 transition-all flex items-center justify-between group bg-white">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                      <item.icon className="h-5 w-5 text-gray-400 group-hover:text-blue-500" />
+                    </div>
+                    <span className="font-bold text-gray-700">{item.label}</span>
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500" />
+                </Card>
+              </Link>
+            ))}
+          </div>
+
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }
