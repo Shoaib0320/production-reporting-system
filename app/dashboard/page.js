@@ -1,15 +1,21 @@
-import React from 'react'
-import Link from 'next/link'
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 export default function DashboardIndex() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <ul>
-        <li><Link href="/admin">Admin</Link></li>
-        <li><Link href="/operator">Operator</Link></li>
-        <li><Link href="/reports">Reports</Link></li>
-      </ul>
-    </div>
-  )
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      if (user?.role === 'admin') router.push('/dashboard/admin');
+      else if (user?.role === 'supervisor') router.push('/dashboard/supervisor');
+      else if (user?.role === 'operator') router.push('/dashboard/operator');
+      else router.push('/login');
+    }
+  }, [loading, user, router]);
+
+  return null;
 }

@@ -5,7 +5,14 @@ import { ProductionService } from '@/lib/services/production.service';
 async function getHandler(req, { params }) {
   try {
     const production = await ProductionService.getById(params.id);
-    
+    // If requester is operator, ensure they own this production
+    const requester = req.user;
+    if (requester && requester.role === 'operator') {
+      if (production.operatorId?._id?.toString() !== requester.id && production.operatorId?.toString() !== requester.id) {
+        return NextResponse.json({ success: false, error: 'Forbidden - cannot view this production' }, { status: 403 });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: production,
@@ -21,6 +28,8 @@ async function getHandler(req, { params }) {
 async function putHandler(req, { params }) {
   try {
     const body = await req.json();
+    // attach requester for permission checks in service
+    body._user = req.user;
     const production = await ProductionService.update(params.id, body);
     
     return NextResponse.json({

@@ -6,8 +6,10 @@ async function getHandler(req) {
   try {
     const url = new URL(req.url);
     const role = url.searchParams.get('role');
-    
-    const users = await UserService.getAll(role ? { role } : {});
+
+    // pass requester for scoping (supervisor -> operators only)
+    const requester = req.user;
+    const users = await UserService.getAll(role ? { role } : {}, requester);
     
     return NextResponse.json({
       success: true,

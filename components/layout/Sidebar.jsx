@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -17,12 +18,18 @@ import {
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { t, dir } = useLanguage();
 
   const menuItems = [
-    { href: '/dashboard/admin', label: 'ڈیش بورڈ', icon: LayoutDashboard, roles: ['admin', 'supervisor'] },
-    { href: '/dashboard/operator', label: 'آپریٹر', icon: Settings, roles: ['operator'] },
-    { href: '/dashboard/admin/users', label: 'یوزرز', icon: Users, roles: ['admin'] },
-    { href: '/dashboard/reports', label: 'رپورٹس', icon: FileText, roles: ['admin', 'supervisor'] },
+    { href: '/dashboard/admin', label: t('dashboard'), icon: LayoutDashboard, roles: ['admin'] },
+    { href: '/dashboard/supervisor', label: t('dashboard'), icon: LayoutDashboard, roles: ['supervisor'] },
+    { href: '/dashboard/operator', label: t('dashboard'), icon: LayoutDashboard, roles: ['operator'] },
+    { href: '/dashboard/admin/productions', label: t('productions'), icon: BarChart3, roles: ['admin'] },
+    { href: '/dashboard/admin/machines', label: t('machines'), icon: Cog, roles: ['admin'] },
+    { href: '/dashboard/admin/users', label: t('users'), icon: Users, roles: ['admin'] },
+    { href: '/dashboard/admin/reports', label: t('reports'), icon: FileText, roles: ['admin'] },
+    { href: '/dashboard/supervisor/reports', label: t('reports'), icon: FileText, roles: ['supervisor'] },
+    { href: '/dashboard/operator/reports', label: t('reports'), icon: FileText, roles: ['operator'] },
   ];
 
   const filteredItems = menuItems.filter(item => 
@@ -30,12 +37,12 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="w-64 bg-white border-l border-gray-200 min-h-screen p-4 flex flex-col justify-between" dir="rtl">
+    <aside className="w-64 bg-white border-l border-gray-200 min-h-screen p-4 flex flex-col justify-between" dir={dir}>
       <div>
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-800">پروڈکشن سسٹم</h2>
+          <h2 className="text-xl font-bold text-gray-800">{t('systemTitle')}</h2>
           <p className="text-sm text-gray-600 mt-1">{user?.name}</p>
-          <div className="mt-1 text-xs text-gray-500">{user?.role}</div>
+          <div className="mt-1 text-xs text-gray-500">{t(user?.role)}</div>
         </div>
 
         <nav className="space-y-2">
@@ -68,7 +75,7 @@ export default function Sidebar() {
           aria-label="Logout"
         >
           <LogOut className="h-5 w-5" />
-          <span>لاگ آؤٹ</span>
+          <span>{t('logout')}</span>
         </Button>
       </div>
     </aside>

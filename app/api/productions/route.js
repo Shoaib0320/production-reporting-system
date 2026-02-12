@@ -40,4 +40,5 @@ async function postHandler(req) {
 }
 
 export const GET = withAuth(getHandler, ['admin', 'supervisor', 'operator']);
-export const POST = withAuth(postHandler, ['admin', 'supervisor', 'operator']);
+// Operators should NOT create productions per RBAC - only admin & supervisor
+export const POST = withAuth(postHandler, ['admin', 'supervisor']);

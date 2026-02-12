@@ -1,17 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
-import ProductionForm from '@/components/forms/ProductionForm';
+import DataTable, { StatusBadge } from '@/components/shared/DataTable';
 import StatsCard from '@/components/shared/StatsCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useProductions } from '@/lib/hooks/useProductions';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { API } from '@/lib/api';
-import { Activity, BarChart, Users, FileText, Plus } from 'lucide-react';
+import { Activity, BarChart, Users, FileText, ArrowRight, Cog } from 'lucide-react';
 import { toast } from 'sonner';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
@@ -20,7 +19,6 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const { productions, loading, fetchProductions } = useProductions({ limit: 10 });
   const [summary, setSummary] = useState(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
 
   useEffect(() => {
     fetchSummary();
@@ -62,26 +60,6 @@ export default function AdminDashboard() {
                 <h1 className="text-3xl font-bold">ایڈمن ڈیش بورڈ</h1>
                 <p className="text-gray-500 mt-1">خوش آمدید، {user?.name}</p>
               </div>
-              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="ml-2 h-4 w-4" />
-                    نئی پروڈکشن
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>نئی پروڈکشن داخل کریں</DialogTitle>
-                  </DialogHeader>
-                  <div className="mt-2">
-                    <ProductionForm onSuccess={() => {
-                      setIsFormOpen(false);
-                      fetchProductions();
-                      fetchSummary();
-                    }} />
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
 
             {/* Stats Cards */}
@@ -112,10 +90,75 @@ export default function AdminDashboard() {
               />
             </div>
 
-            {/* Recent Productions */}
+            {/* Quick Access Cards */}
+            <div className="grid grid-cols-3 gap-4">
+              <Link href="/dashboard/admin/productions">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">پروڈکشن مینجمنٹ</p>
+                        <h3 className="text-2xl font-bold mt-1">{summary?.totalProductions || 0}</h3>
+                      </div>
+                      <BarChart className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div className="flex items-center mt-4 text-blue-600">
+                      <span className="text-sm">مکمل دیکھیں</span>
+                      <ArrowRight className="h-4 w-4 mr-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              
+              <Link href="/dashboard/admin/machines">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">مشینز</p>
+                        <h3 className="text-2xl font-bold mt-1">{summary?.totalMachines || 0}</h3>
+                      </div>
+                      <Cog className="h-8 w-8 text-green-600" />
+                    </div>
+                    <div className="flex items-center mt-4 text-green-600">
+                      <span className="text-sm">مکمل دیکھیں</span>
+                      <ArrowRight className="h-4 w-4 mr-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/dashboard/admin/users">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">یوزرز</p>
+                        <h3 className="text-2xl font-bold mt-1">{summary?.totalOperators || 0}</h3>
+                      </div>
+                      <Users className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <div className="flex items-center mt-4 text-purple-600">
+                      <span className="text-sm">مکمل دیکھیں</span>
+                      <ArrowRight className="h-4 w-4 mr-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+
+            {/* Recent Productions Preview */}
             <Card>
               <CardHeader>
-                <CardTitle>حالیہ پروڈکشن ریکارڈ</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle>حالیہ پروڈکشن ریکارڈ</CardTitle>
+                  <Link href="/dashboard/admin/productions">
+                    <Button variant="outline" size="sm">
+                      تمام دیکھیں
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -123,39 +166,47 @@ export default function AdminDashboard() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>تاریخ</TableHead>
-                        <TableHead>مشین</TableHead>
-                        <TableHead>پروڈکٹ</TableHead>
-                        <TableHead>پیسز</TableHead>
-                        <TableHead>وزن</TableHead>
-                        <TableHead>آپریٹر</TableHead>
-                        <TableHead>شفٹ</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {productions.map((prod) => (
-                        <TableRow key={prod._id}>
-                          <TableCell>{formatDate(prod.date)}</TableCell>
-                          <TableCell>{prod.machineId?.name}</TableCell>
-                          <TableCell>{prod.productName}</TableCell>
-                          <TableCell>{prod.totalPieces}</TableCell>
-                          <TableCell>{prod.totalWeight.toFixed(2)}</TableCell>
-                          <TableCell>{prod.operatorId?.name}</TableCell>
-                          <TableCell>{shiftNames[prod.shift]}</TableCell>
-                        </TableRow>
-                      ))}
-                      {productions.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                            کوئی پروڈکشن ریکارڈ نہیں
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    data={productions.slice(0, 5)}
+                    columns={[
+                      {
+                        key: 'date',
+                        header: 'تاریخ',
+                        accessor: (row) => formatDate(row.date),
+                        filterable: false,
+                        sortable: false
+                      },
+                      {
+                        key: 'machineId',
+                        header: 'مشین',
+                        accessor: (row) => row.machineId?.name,
+                        filterable: false
+                      },
+                      {
+                        key: 'productName',
+                        header: 'پروڈکٹ',
+                        filterable: false
+                      },
+                      {
+                        key: 'totalPieces',
+                        header: 'پیسز',
+                        filterable: false,
+                        sortable: false
+                      },
+                      {
+                        key: 'totalWeight',
+                        header: 'وزن',
+                        accessor: (row) => row.totalWeight.toFixed(2),
+                        filterable: false,
+                        sortable: false
+                      }
+                    ]}
+                    searchable={false}
+                    filterable={false}
+                    exportable={false}
+                    itemsPerPage={5}
+                    emptyMessage="کوئی پروڈکشن ریکارڈ نہیں"
+                  />
                 )}
               </CardContent>
             </Card>
